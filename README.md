@@ -205,7 +205,7 @@ services:
     #     max-file: "3"
 ```
 
-See `.env.example` for variables.
+See `env.example` for variables.
 
 ---
 
