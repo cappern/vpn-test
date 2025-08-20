@@ -1,0 +1,45 @@
+# docker-compose.yaml
+#
+# Synthetic VPN login probe using openconnect + expect.
+# Builds the local Dockerfile and runs the probe in a loop.
+#
+# Usage:
+#   1) Copy .env.example to .env and fill in values.
+#   2) docker compose up --build
+#
+# Notes:
+# - NET_ADMIN + /dev/net/tun are included because some openconnect flows
+#   attempt to create a TUN device even during interactive connect.
+# - If your openconnect build/portal does not need TUN for probing,
+#   you may remove cap_add/devices.
+#
+services:
+  vpn-probe:
+    image: vpn-probe:alpine
+    build: .
+    container_name: vpn-probe
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    env_file:
+      - .env
+    # Mount client certs/keys as needed:
+    volumes:
+      # PEM pair:
+      - ./certs/client.crt.pem:/certs/client.crt.pem:ro
+      - ./certs/client2.key.pem:/certs/client2.key.pem:ro
+    #   # or PKCS#12:
+    #   - ./certs/client.p12:/certs/client.p12:ro
+    #   # Optional extra CA bundle:
+      - ./certs/custom-vpn.pem:/etc/ssl/certs/custom-vpn.pem:ro
+    # environment:
+    #   # If using the extra CA bundle:
+    #   CA_CERT_BUNDLE: "/etc/ssl/certs/custom-vpn.pem"
+    # Optional logging limits
+    # logging:
+    #   driver: json-file
+    #   options:
+    #     max-size: 10m
+    #     max-file: "3"
